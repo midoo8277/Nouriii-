@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Poppins:wght@300;400&display=swap');
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background: #0a0a0f; color: #f5f0e8; font-family: 'Poppins', sans-serif; min-height: 100vh; overflow-x: hidden; }
+  canvas#stars { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+  .page { position: relative; z-index: 1; display: none; min-height: 100vh; align-items: center; justify-content: center; flex-direction: column; text-align: center; padding: 2rem; }
+  .page.active { display: flex; }
+  .cover-date { font-size: 0.7rem; letter-spacing: 5px; color: #d4a550; text-transform: uppercase; margin-bottom: 2rem; opacity: 0; animation: fadeUp 1s ease 0.3s both; }
+  .cover-title { font-family: 'Playfair Display', serif; font-size: clamp(2.5rem, 8vw, 5rem); font-weight: 700; line-height: 1.1; margin-bottom: 1rem; opacity: 0; animation: fadeUp 1s ease 0.6s both; }
+  .cover-title span { color: #d4a550; }
+  .cover-subtitle { font-size: 1rem; color: #aaa; font-weight: 300; margin-bottom: 3rem; opacity: 0; animation: fadeUp 1s ease 0.9s both; }
+  .heart-btn { background: none; border: 1.5px solid #d4a550; color: #d4a550; font-family: 'Poppins', sans-serif; font-size: 0.85rem; letter-spacing: 2px; text-transform: uppercase; padding: 1rem 2.5rem; cursor: pointer; border-radius: 2px; transition: all 0.3s; opacity: 0; animation: fadeUp 1s ease 1.2s both; }
+  .heart-btn:hover { background: #d4a550; color: #0a0a0f; }
+  .timeline-title { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 5vw, 3rem); margin-bottom: 3rem; color: #f5f0e8; }
+  .timeline-title span { color: #d4a550; font-style: italic; }
+  .timeline { display: flex; flex-direction: column; gap: 0; max-width: 480px; width: 100%; position: relative; }
+  .timeline::before { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: linear-gradient(to bottom, transparent, #d4a550 20%, #d4a550 80%, transparent); transform: translateX(-50%); }
+  .tl-item { display: flex; align-items: center; gap: 1.5rem; padding: 1.2rem 0; opacity: 0; transform: translateY(20px); transition: all 0.6s ease; }
+  .tl-item.visible { opacity: 1; transform: translateY(0); }
+  .tl-item:nth-child(odd) { flex-direction: row-reverse; text-align: right; }
+  .tl-dot { width: 12px; height: 12px; border-radius: 50%; background: #d4a550; border: 2px solid #0a0a0f; outline: 1.5px solid #d4a550; flex-shrink: 0; position: relative; z-index: 1; }
+  .tl-content { flex: 1; }
+  .tl-date { font-size: 0.65rem; letter-spacing: 2px; color: #d4a550; text-transform: uppercase; margin-bottom: 0.3rem; }
+  .tl-text { font-size: 0.9rem; color: #ccc; font-weight: 300; line-height: 1.6; }
+  .counter-label { font-size: 0.7rem; letter-spacing: 4px; color: #d4a550; text-transform: uppercase; margin-bottom: 1.5rem; }
+  .counter-title { font-family: 'Playfair Display', serif; font-size: clamp(1.5rem, 4vw, 2.5rem); margin-bottom: 3rem; color: #f5f0e8; }
+  .counter-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; max-width: 500px; width: 100%; margin-bottom: 3rem; }
+  .counter-box { background: rgba(212,165,80,0.07); border: 1px solid rgba(212,165,80,0.2); border-radius: 4px; padding: 1.2rem 0.5rem; }
+  .counter-num { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: #d4a550; display: block; line-height: 1; margin-bottom: 0.4rem; }
+  .counter-unit { font-size: 0.65rem; letter-spacing: 1.5px; color: #888; text-transform: uppercase; }
+  .final-msg { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.1rem; color: #ccc; max-width: 380px; line-height: 1.8; margin-bottom: 2rem; }
+  .final-msg span { color: #d4a550; }
+  .nav-dots { position: fixed; right: 1.5rem; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 0.6rem; z-index: 10; }
+  .nav-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(212,165,80,0.3); border: 1px solid #d4a550; cursor: pointer; transition: all 0.3s; }
+  .nav-dot.active { background: #d4a550; transform: scale(1.3); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+  .gold-line { width: 60px; height: 1px; background: #d4a550; margin: 1.5rem auto; opacity: 0; animation: fadeUp 1s ease 0.75s both; }
+  @media (max-width: 480px) { .counter-grid { grid-template-columns: repeat(2,1fr); } }
+</style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+
+<div class="nav-dots">
+  <div class="nav-dot active" onclick="goTo(0)"></div>
+  <div class="nav-dot" onclick="goTo(1)"></div>
+  <div class="nav-dot" onclick="goTo(2)"></div>
+</div>
+
+<div class="page active" id="p0">
+  <p class="cover-date">28 · 04 · 2023</p>
+  <h1 class="cover-title">محمد<br/><span>&</span><br/>نور</h1>
+  <div class="gold-line"></div>
+  <p class="cover-subtitle"> احلي 3 سنين في حياة ميدوو كلها</p>
+  <button class="heart-btn" onclick="goTo(1)">اكتشف الذكريات ↓</button>
+</div>
+
+<div class="page" id="p1">
+  <h2 class="timeline-title">رحلتنا <span>سوا</span></h2>
+  <div class="timeline" id="timeline">
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-content">
+        <p class="tl-date">28 أبريل 2023</p>
+        <p class="tl-text">أول يوم — اليوم اللي كنت بتلكك فيه عشان اكلمك وبسألك عن حصة عماد عرابي فرحتي ساعتها متتوصفش والله  "انا بجد اتكتبلي احلي قصة حب فيهه❤️"ه</p>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-content">
+        <p class="tl-date">2023</p>
+        <p class="tl-text">اول سنة معاكي وبداية عمري الجديد🌎</p>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-content">
+        <p class="tl-date">2024</p>
+        <p class="tl-text">تاني سنة — احلي سنة في حياتي تانية ثانوي واما كنا بنشوف بعض ونمشي سوا كتير واتلكك عشان اوصلك وانام علي كتفك في العربية عيشت فيها معاكي احلي ايام عمري وبسببك بقيت توحشني الايام دي اوي اوي💛</p>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-content">
+        <p class="tl-date">2025</p>
+        <p class="tl-text">تالت سنة — تالتة ثانوي اصعب سنة تعدي علي اي حد كانت سهلة بيكي عشان كنتي معايا ودايما بتشجعيني وكنتي السبب الاول بعد ربنا اني ادخل الكلية اصلا حبيت السنة دي اوي عشان وجودك معايا يا احلي حاجة في عمري</p>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-content">
+        <p class="tl-date">2026 — اليوم — 28 — 4</p>
+        <p class="tl-text">ورابع سنة بتبدأ ومعاها ذكرى 3 سنين وانا معايا دنيتي كلها واحلي حاجة في حياة ميدو ربنا يخليكي ليا يا ماما وبنتي وحبيبتي ودنيتي كلها وعقبال العمر كله سوا يا نوريي 🎉</p>
+        <p class="tl-date">مش هتتجوزيني بقيي😔</p>
+
+      </div>
+    </div>
+  </div>
+  <button class="heart-btn" onclick="goTo(2)" style="margin-top:2rem;">كام يوم عدّى؟ ↓</button>
+</div>
+
+<div class="page" id="p2">
+  <p class="counter-label">من يوم ما اتعرفنا</p>
+  <h2 class="counter-title">كل لحظة مع حبيبتي بتفرق💛</h2>
+  <div class="counter-grid">
+    <div class="counter-box"><span class="counter-num" id="cYears">0</span><span class="counter-unit">سنين</span></div>
+    <div class="counter-box"><span class="counter-num" id="cMonths">0</span><span class="counter-unit">أشهر</span></div>
+    <div class="counter-box"><span class="counter-num" id="cDays">0</span><span class="counter-unit">يوم</span></div>
+    <div class="counter-box"><span class="counter-num" id="cHours">0</span><span class="counter-unit">ساعة</span></div>
+  </div>
+  <p class="final-msg">"كل يوم مع <span>نور</span> بيخلّيني أشكر ربنا إنه بعتها في حياتي"<br/>— <span>I LOVE U NOURIII❤️</span></p>
+  <button class="heart-btn" onclick="goTo(0)">↑ من الأول</button>
+</div>
+
+<script>
+const canvas = document.getElementById('stars');
+const ctx = canvas.getContext('2d');
+let stars = [];
+function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; initStars(); }
+function initStars() { stars = []; for (let i = 0; i < 160; i++) { stars.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*1.2+0.2, speed: Math.random()*0.005+0.002, phase: Math.random()*Math.PI*2 }); } }
+function drawStars(t) { ctx.clearRect(0,0,canvas.width,canvas.height); stars.forEach(s => { const alpha = 0.3+0.5*Math.sin(t*s.speed+s.phase); ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fillStyle=`rgba(212,165,80,${alpha})`; ctx.fill(); }); requestAnimationFrame(drawStars); }
+resizeCanvas(); window.addEventListener('resize', resizeCanvas); requestAnimationFrame(drawStars);
+
+let currentPage = 0;
+const pages = document.querySelectorAll('.page');
+const dots   = document.querySelectorAll('.nav-dot');
+function goTo(n) { pages[currentPage].classList.remove('active'); dots[currentPage].classList.remove('active'); currentPage=n; pages[n].classList.add('active'); dots[n].classList.add('active'); if(n===1) animateTimeline(); if(n===2) startCounter(); }
+function animateTimeline() { document.querySelectorAll('.tl-item').forEach((el,i) => { setTimeout(()=>el.classList.add('visible'), i*300); }); }
+function startCounter() {
+  const start = new Date('2023-04-28T00:00:00');
+  function update() { const now=new Date(); const diff=now-start; const totalDays=Math.floor(diff/86400000); animCount('cYears',Math.floor(totalDays/365),800); animCount('cMonths',Math.floor((totalDays%365)/30),800); animCount('cDays',totalDays%30,800); animCount('cHours',Math.floor((diff%86400000)/3600000),800); }
+  update(); setInterval(update,60000);
+}
+function animCount(id,target,duration) { const el=document.getElementById(id); const start=performance.now(); function step(now){const p=Math.min((now-start)/duration,1); el.textContent=Math.round(p*target); if(p<1) requestAnimationFrame(step);} requestAnimationFrame(step); }
+</script>
+</body>
+</html>
